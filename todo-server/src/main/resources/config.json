@@ -1,0 +1,23 @@
+{
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "database": "todoapp",
+    "user": "zead",
+    "password": "1234"
+  },
+  "server": {
+    "host": "localhost",
+    "port": 8881
+  },
+  "clients": [
+    {
+      "host": "localhost",
+      "port": 8080
+    },
+    {
+      "host": "localhost",
+      "port": 8081
+    }
+  ]
+}

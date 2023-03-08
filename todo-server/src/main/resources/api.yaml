@@ -1,0 +1,99 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: todo-app
+  description: A service to manage planed tasks
+
+
+servers:
+  - url: ''
+    description: local instance for starter
+
+tags:
+  - name: Tasks
+    x-displayName: Tasks
+    description: Store Tasks.
+
+paths:
+  /dashboard:
+    get:
+      description: get all stored data of a user
+      operationId: getTasks
+      tags:
+        - My tasks
+      parameters:
+        - name: username
+          in: query
+          description: "name of user"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: todos sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '401':
+          description: user not found
+          headers: {}
+        500:
+          description: server internal error
+          headers: {}
+  /dashboard/{username}:
+    post:
+      description: store todo with following data username title dueDate note creationDate
+      operationId: saveTask
+      tags:
+        - Save one task
+      parameters:
+        - name: username
+          in: path
+          description: "name of user"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+      responses:
+        402:
+          description: task already exists
+          headers: {}
+        500:
+          description: server internal error
+          headers: {}
+
+components:
+  schemas:
+    Response:
+      description: "Key:Value based Response"
+      type: object
+      x-examples:
+        example-1:
+          title: "task1"
+          note:  "614b2d639155ce0a50b7d284"
+          creationDate: "YYYY.MM.DD"
+          dueDate: "YYYY.MM.DD"
+      title: ''
+      properties:
+        title:
+          type: string
+          minLength: 1
+        note:
+          type: string
+          minLength: 1
+        creationDate:
+          type: string
+          minLength: 1
+        dueDate:
+          type: string
+          minLength: 1
+      required:
+        - creationDate
+        - dueDate
+        - note
+        - title
