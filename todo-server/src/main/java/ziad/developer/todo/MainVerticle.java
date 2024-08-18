@@ -30,11 +30,11 @@ package ziad.developer.todo;
   import ziad.developer.todo.verticles.OtherOne;
 
 public class MainVerticle extends AbstractVerticle {
-  private String PREFIX = "MainVerticle:::";
+  private final String PREFIX = "MainVerticle:::";
   private final Logger LOGGING = LoggerFactory.getLogger(PREFIX);
 
-  private JsonObject config = new JsonObject();
-  private String noJwt = "";
+  private final JsonObject config = new JsonObject();
+  private final String noJwt = "";
 
   private DatabaseManager dbManager;
   private LoginManager loginManager;
@@ -136,7 +136,6 @@ public class MainVerticle extends AbstractVerticle {
 
   /***
    * setup CORS, openapi, routing and start the server
-   * @return
    */
   private Future<String> startServer(){
     Promise<String> serverPromise = Promise.promise();
@@ -216,7 +215,6 @@ public class MainVerticle extends AbstractVerticle {
 
   /***
    * To handle all wrong queries.
-   * @param context
    */
   private void errorHandler(RoutingContext context){
     if (context.failure() instanceof BadRequestException) {
