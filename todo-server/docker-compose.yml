@@ -3,19 +3,19 @@ version: '3.5'
 services:
   todo-app:
     build:
-      context: todo/
+      context: todo-server/
       dockerfile: Dockerfile
     image: todo-app:v1
     restart: always
     ports:
-      - '8081:8081'
+      - '8091:8081'
     environment:
       - DATABASE_CONFIG={"host":"todo-db", "port":5432, "database":"todoapp", "user":"ziad", "password":"1234"}
 
   todo-db:
     image: postgres:13
     ports:
-      - '5432:5432'
+      - '8092:5432'
     deploy:
       restart_policy:
         condition: on-failure
@@ -31,7 +31,9 @@ services:
     build: todo-ui/
     image: todo-ui:v1
     ports:
-      - '8080:8080'
+      - '8090:8080'
+    volumes:
+      - /etc/letsencrypt/archive/server.grykely.de:/etc/nginx/certs
 
 volumes:
   todo-postgres:

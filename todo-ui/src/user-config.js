@@ -1,6 +1,6 @@
 const serverConfig = {
     api: {
-        baseUrl: 'http://localhost:8081'
+        baseUrl: 'https://server.grykely.de:8091'
     },
     routerOptions: {
         get: '?username=',

@@ -45,6 +45,8 @@ paths:
     post:
       description: store todo with following data username title dueDate note creationDate
       operationId: saveTask
+      security:
+        - bearerAuth: []
       tags:
         - Save one task
       parameters:

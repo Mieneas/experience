@@ -5,10 +5,15 @@ package ziad.developer.todo;
   import io.vertx.core.Promise;
   import io.vertx.core.http.HttpServerOptions;
   import io.vertx.core.json.JsonObject;
+  import io.vertx.ext.auth.JWTOptions;
+  import io.vertx.ext.auth.KeyStoreOptions;
+  import io.vertx.ext.auth.jwt.JWTAuth;
+  import io.vertx.ext.auth.jwt.JWTAuthOptions;
   import io.vertx.ext.web.Router;
   import io.vertx.ext.web.RoutingContext;
   import io.vertx.ext.web.handler.BodyHandler;
   import io.vertx.ext.web.handler.CorsHandler;
+  import io.vertx.ext.web.handler.JWTAuthHandler;
   import io.vertx.ext.web.handler.StaticHandler;
   import io.vertx.ext.web.openapi.RouterBuilder;
   import io.vertx.ext.web.validation.BadRequestException;
@@ -29,6 +34,7 @@ public class MainVerticle extends AbstractVerticle {
   private final Logger LOGGING = LoggerFactory.getLogger(PREFIX);
 
   private JsonObject config = new JsonObject();
+  private String noJwt = "";
 
   private DatabaseManager dbManager;
   private LoginManager loginManager;
@@ -143,7 +149,14 @@ public class MainVerticle extends AbstractVerticle {
       .onSuccess(routerBuilder -> {
         LOGGING.info("OpenAPI configuration loaded.");
 
-        String cors = "http:\\/\\/localhost:\\d{1,5}";
+        JWTAuthOptions jwTConfig = new JWTAuthOptions()
+          .setKeyStore(new KeyStoreOptions()
+            .setType("jks")
+            .setPath("JWT-keystore.jks")
+            .setPassword("6tgsrggnbsffhvdv45"));
+        JWTAuth jwtProvider = JWTAuth.create(vertx, jwTConfig);
+
+        String cors = "http:\\/\\/server.grykely.de:\\d{1,5}";
         routerBuilder.rootHandler(CorsHandler.create()
           .addRelativeOrigin(cors)
           .allowedHeaders(Http.allowedHeaders)
@@ -153,22 +166,26 @@ public class MainVerticle extends AbstractVerticle {
         routerBuilder.rootHandler(StaticHandler.create());
 
         routerBuilder.operation("getTasks").handler(routingContext -> {
-          this.loginManager.login(routingContext.request().getParam("username"),
-            res -> {
-              if (res.succeeded()) Http.reply(Future.succeededFuture(res.result()), "application/json" ,routingContext);
-              else Http.reply(Future.failedFuture(res.cause()), "String",routingContext);
-            });
+          String username = routingContext.request().getParam("username");
+          this.loginManager.login(username, res -> {
+            if (res.succeeded()) {
+              JsonObject payload = new JsonObject()
+                .put("sub", username)
+                .put("name", username);
+              String jwt = jwtProvider.generateToken(payload, new JWTOptions().setExpiresInMinutes(60 * 6));
+              Http.reply(Future.succeededFuture(res.result()), "application/json", jwt, routingContext);
+            }
+            else Http.reply(Future.failedFuture(res.cause()), "String", noJwt, routingContext);
+          });
         });
 
-        routerBuilder.operation("saveTask").handler(routingContext -> {
-          this.panelManager.addTask(
-            routingContext.request().getParam("username"),
-            routingContext.body().asJsonObject(),
-            res -> {
-              if (res.succeeded())
-                Http.reply(Future.succeededFuture(res.result()), "String", routingContext);
-              else
-                Http.reply(Future.failedFuture(res.cause()), "String", routingContext);
+        routerBuilder.securityHandler("bearerAuth", JWTAuthHandler.create(jwtProvider)).operation("saveTask")
+          .handler(routingContext -> {
+            String username = routingContext.request().getParam("username");
+            JsonObject body = routingContext.body().asJsonObject();
+            this.panelManager.addTask(username, body, res -> {
+              if (res.succeeded()) Http.reply(Future.succeededFuture(res.result()), "String", noJwt, routingContext);
+              else Http.reply(Future.failedFuture(res.cause()), "String", noJwt, routingContext);
             });
         });
 

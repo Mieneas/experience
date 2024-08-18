@@ -29,23 +29,22 @@ public class Http {
       HttpMethod.DELETE)); // Delete specific resource.
 
 
-  public static void reply(Future result, String contentType, RoutingContext routingContext) {
+  public static void reply(Future result, String contentType, String jwt, RoutingContext routingContext) {
     if (result.succeeded()) {
       routingContext.response()
         .setStatusCode(200)
         .putHeader("Content-Type", contentType)
-        .putHeader("Access-Control-Allow-origin", "http://localhost:8080")
-        .putHeader("origin", "http://localhost:8080");
-      if (contentType.contains("json"))
-        routingContext.json(result.result() == null? new JsonObject() : result.result());
-      else
-        routingContext.response().end(result.result() == null? "No Result" : result.result().toString());
+        .putHeader("Access-Control-Allow-origin", "http://server.grykely.de:8090")
+        .putHeader("origin", "http://server.grykely.de:8090")
+        .putHeader("Authorization", jwt);
+      if (contentType.contains("json")) routingContext.json(result.result() == null? new JsonObject() : result.result());
+      else routingContext.response().end(result.result() == null? "No Result" : result.result().toString());
     }
     else
       routingContext.response()
         .putHeader("Content-Type", "String")
-        .putHeader("Access-Control-Allow-origin", "http://localhost:8080")
-        .putHeader("origin", "http://localhost:8080")
+        .putHeader("Access-Control-Allow-origin", "http://server.grykely.de:8090")
+        .putHeader("origin", "http://server.grykely.de:8090")
         .setStatusCode(Integer.parseInt(result.cause().getMessage().split("_")[0]))
         .end(result.cause().getMessage().split("_")[1]);
   }
